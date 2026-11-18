@@ -558,6 +558,16 @@ class MainWindow(QMainWindow):
         label.setObjectName("SectionTitle")
         return label
 
+    def _confirm(self, title: str, text: str) -> bool:
+        box = QMessageBox(self)
+        box.setWindowTitle(title)
+        box.setText(text)
+        yes = box.addButton(t("common.yes"), QMessageBox.ButtonRole.AcceptRole)
+        no = box.addButton(t("common.no"), QMessageBox.ButtonRole.RejectRole)
+        box.setDefaultButton(no)
+        box.exec()
+        return box.clickedButton() is yes
+
     # ------------------------------------------------------------------
     # Navigasyon
     # ------------------------------------------------------------------
@@ -999,15 +1009,12 @@ class MainWindow(QMainWindow):
     def _clear_history(self) -> None:
         if not self.store.history:
             return
-        answer = QMessageBox.question(
-            self,
-            t("history.clear_confirm_title"),
-            t("history.clear_confirm"),
-            QMessageBox.Yes | QMessageBox.No,
-        )
-        if answer == QMessageBox.Yes:
-            self.store.clear_history()
-            self._reload_history()
+        if not self._confirm(
+            t("history.clear_confirm_title"), t("history.clear_confirm")
+        ):
+            return
+        self.store.clear_history()
+        self._reload_history()
 
     def _reload_words(self) -> None:
         if not hasattr(self, "words_list"):
@@ -1028,15 +1035,12 @@ class MainWindow(QMainWindow):
     def _clear_words(self) -> None:
         if not self.store.words:
             return
-        answer = QMessageBox.question(
-            self,
-            t("words.clear_confirm_title"),
-            t("words.clear_confirm"),
-            QMessageBox.Yes | QMessageBox.No,
-        )
-        if answer == QMessageBox.Yes:
-            self.store.clear_words()
-            self._reload_words()
+        if not self._confirm(
+            t("words.clear_confirm_title"), t("words.clear_confirm")
+        ):
+            return
+        self.store.clear_words()
+        self._reload_words()
 
     # ------------------------------------------------------------------
     # Kopyala / ses / kelime

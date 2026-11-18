@@ -29,6 +29,8 @@
   "common.delete": "Delete",
   "common.save": "Save",
   "common.cancel": "Cancel",
+  "common.yes": "Yes",
+  "common.no": "No",
   "common.error": "Error",
   "common.ready": "Ready",
   "common.loading": "Loading...",

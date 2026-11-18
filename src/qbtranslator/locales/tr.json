@@ -29,6 +29,8 @@
   "common.delete": "Sil",
   "common.save": "Kaydet",
   "common.cancel": "İptal",
+  "common.yes": "Evet",
+  "common.no": "Hayır",
   "common.error": "Hata",
   "common.ready": "Hazır",
   "common.loading": "Yükleniyor...",
