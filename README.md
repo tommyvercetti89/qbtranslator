@@ -34,6 +34,12 @@ python -m pip install -e ".[dev]"
 python -m qbtranslator
 ```
 
+From a source checkout without installing the package:
+
+```powershell
+python run.py
+```
+
 For a throwaway development data directory:
 
 ```powershell
