@@ -199,7 +199,7 @@ QCheckBox::indicator {{
 QCheckBox::indicator:checked {{
     background: {ACCENT_DARK};
     border-color: {ACCENT_DARK};
-    image: url("{((ASSETS_DIR / 'check.svg').as_posix())}");
+    image: url("{((ASSETS_DIR / 'check.png').as_posix())}");
 }}
 QListWidget {{
     background: transparent;

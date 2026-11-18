@@ -83,3 +83,19 @@ instead of breaking startup.
 UI strings live in `locales/tr.json` and `locales/en.json`. The interface language
 is resolved from the `ui_language` setting or the Windows UI language. A language
 change is applied on the next application start.
+
+## Packaging
+
+`build_tools/` contains the PyInstaller onedir and onefile specs, version metadata
+and the PowerShell build script. The package is restricted to QtCore, QtGui and
+QtWidgets. Unused Qt modules, QML, Quick, WebEngine, Multimedia, Network, SQL,
+PrintSupport, software OpenGL helpers and development tooling are excluded.
+
+The onedir package is the recommended distribution because it starts faster and
+does not extract a runtime archive on every launch. The single-file portable build
+is provided for convenience. Both packages run `--selftest` after building. An
+Inno Setup installer is produced when Inno Setup 6 is available.
+
+Release builds should be produced from a path without a personal username, ideally
+by GitHub Actions. The build script copies documentation, security notes and
+license files into the onedir package and writes SHA-256 checksums.

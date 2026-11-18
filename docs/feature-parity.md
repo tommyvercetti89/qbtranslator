@@ -1,4 +1,4 @@
-# Feature Parity: Tkinter 1.0.0 vs PySide6 0.1.0
+# Feature Parity: Tkinter 1.0.0 vs PySide6 2.0.0
 
 This document compares the archived Tkinter application with the active PySide6
 rewrite. Status values:
@@ -10,7 +10,7 @@ rewrite. Status values:
 
 ## 1. Application shell and lifecycle
 
-| Feature | Tkinter 1.0.0 | PySide6 0.1.0 | Status |
+| Feature | Tkinter 1.0.0 | PySide6 2.0.0 | Status |
 |---|---|---|---|
 | Main tabs | Translate, History, Saved Words, Settings, About | Translate, History, Words, Settings, About | Var |
 | About tab | Usage, privacy, data directory, engines | Usage, privacy, data directory, engines | Var |
@@ -31,7 +31,7 @@ rewrite. Status values:
 
 ## 2. Translate tab and manual workflow
 
-| Feature | Tkinter 1.0.0 | PySide6 0.1.0 | Status |
+| Feature | Tkinter 1.0.0 | PySide6 2.0.0 | Status |
 |---|---|---|---|
 | Source language combo | Auto plus languages | Auto plus languages | Var |
 | Target language combo | Searchable list | Editable combo with completer and accent-insensitive picker | Var |
@@ -54,7 +54,7 @@ rewrite. Status values:
 
 ## 3. Translation engines and validation
 
-| Feature | Tkinter 1.0.0 | PySide6 0.1.0 | Status |
+| Feature | Tkinter 1.0.0 | PySide6 2.0.0 | Status |
 |---|---|---|---|
 | Google Translate | Yes, default | Yes, default | Var |
 | MyMemory | Yes | Yes | Var |
@@ -76,7 +76,7 @@ rewrite. Status values:
 
 ## 4. Global hotkey and selection capture
 
-| Feature | Tkinter 1.0.0 | PySide6 0.1.0 | Status |
+| Feature | Tkinter 1.0.0 | PySide6 2.0.0 | Status |
 |---|---|---|---|
 | Global hotkey listener | Yes | Yes | Var |
 | Selected text capture with Ctrl+C | Yes | Yes | Var |
@@ -93,7 +93,7 @@ rewrite. Status values:
 
 ## 5. Translation popup
 
-| Feature | Tkinter 1.0.0 | PySide6 0.1.0 | Status |
+| Feature | Tkinter 1.0.0 | PySide6 2.0.0 | Status |
 |---|---|---|---|
 | Frameless popup | Yes | Yes | Var |
 | Always on top | Yes | Yes | Var |
@@ -118,7 +118,7 @@ rewrite. Status values:
 
 ## 6. OCR
 
-| Feature | Tkinter 1.0.0 | PySide6 0.1.0 | Status |
+| Feature | Tkinter 1.0.0 | PySide6 2.0.0 | Status |
 |---|---|---|---|
 | OCR enable setting | Yes | Settings toggle | Var |
 | Separate OCR hotkey | Yes | Yes, capture dialog | Var |
@@ -142,7 +142,7 @@ recognition in a worker thread, error reporting and popup translation.
 
 ## 7. Clipboard monitoring
 
-| Feature | Tkinter 1.0.0 | PySide6 0.1.0 | Status |
+| Feature | Tkinter 1.0.0 | PySide6 2.0.0 | Status |
 |---|---|---|---|
 | Clipboard watcher | Yes | Yes, started from settings | Var |
 | Enable/disable setting | Yes | Yes | Var |
@@ -154,7 +154,7 @@ recognition in a worker thread, error reporting and popup translation.
 
 ## 8. History
 
-| Feature | Tkinter 1.0.0 | PySide6 0.1.0 | Status |
+| Feature | Tkinter 1.0.0 | PySide6 2.0.0 | Status |
 |---|---|---|---|
 | History storage | Yes | Yes | Var |
 | History limit | Configurable in settings | Configurable in settings | Var |
@@ -171,7 +171,7 @@ recognition in a worker thread, error reporting and popup translation.
 
 ## 9. Saved words
 
-| Feature | Tkinter 1.0.0 | PySide6 0.1.0 | Status |
+| Feature | Tkinter 1.0.0 | PySide6 2.0.0 | Status |
 |---|---|---|---|
 | Add word | Yes | Yes | Var |
 | Duplicate detection | Yes, Turkish-aware | Yes, Turkish-aware | Var |
@@ -186,7 +186,7 @@ recognition in a worker thread, error reporting and popup translation.
 
 ## 10. Settings
 
-| Feature | Tkinter 1.0.0 | PySide6 0.1.0 | Status |
+| Feature | Tkinter 1.0.0 | PySide6 2.0.0 | Status |
 |---|---|---|---|
 | Hotkey text field | Yes | Yes | Var |
 | Hotkey capture button | Yes | Yes | Var |
@@ -215,7 +215,7 @@ recognition in a worker thread, error reporting and popup translation.
 
 ## 11. TTS and audio
 
-| Feature | Tkinter 1.0.0 | PySide6 0.1.0 | Status |
+| Feature | Tkinter 1.0.0 | PySide6 2.0.0 | Status |
 |---|---|---|---|
 | Windows SAPI speech | Yes | Yes | Var |
 | Speak from popup | Yes | Yes | Var |
@@ -229,7 +229,7 @@ recognition in a worker thread, error reporting and popup translation.
 
 ## 12. Storage and data
 
-| Feature | Tkinter 1.0.0 | PySide6 0.1.0 | Status |
+| Feature | Tkinter 1.0.0 | PySide6 2.0.0 | Status |
 |---|---|---|---|
 | JSON config, history, words | Yes | Yes | Var |
 | Atomic writes | Yes | Yes | Var |
@@ -248,7 +248,7 @@ archive.
 
 ## 13. Tray, background and Windows integration
 
-| Feature | Tkinter 1.0.0 | PySide6 0.1.0 | Status |
+| Feature | Tkinter 1.0.0 | PySide6 2.0.0 | Status |
 |---|---|---|---|
 | Tray icon | Yes | Yes | Var |
 | Tray open/quit menu | Yes | Yes, localized | Var |

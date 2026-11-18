@@ -935,11 +935,17 @@ class MainWindow(QMainWindow):
         content = QTextBrowser()
         content.setOpenExternalLinks(False)
         text = t("about.content")
-        text += f"\n\n{t('about.data_dir')}:\n{DATA_DIR}"
+        text += f"\n\n{t('about.data_dir')}:\n{self._display_data_dir()}"
         content.setPlainText(text)
         card_layout.addWidget(content, 1)
         layout.addWidget(card, 1)
         return page
+
+    @staticmethod
+    def _display_data_dir() -> str:
+        if os.environ.get("QB_DATA_DIR"):
+            return str(DATA_DIR)
+        return r"%LOCALAPPDATA%\QBTranslator\data"
 
     @staticmethod
     def _section_title(text: str) -> QLabel:

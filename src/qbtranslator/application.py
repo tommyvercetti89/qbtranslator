@@ -112,6 +112,24 @@ def _run_selftest() -> int:
         exit_code = 1
 
     try:
+        from PySide6.QtGui import QIcon, QImage
+
+        check_path = ASSETS_DIR / "check.png"
+        icon_path = ASSETS_DIR / "QBTranslator.ico"
+        assets_ok = (
+            check_path.exists()
+            and not QImage(str(check_path)).isNull()
+            and icon_path.exists()
+            and not QIcon(str(icon_path)).isNull()
+        )
+        lines.append("assets=OK" if assets_ok else "assets=FAIL")
+        if not assets_ok:
+            exit_code = 1
+    except Exception as error:
+        lines.append(f"assets=FAIL {error}")
+        exit_code = 1
+
+    try:
         import qbtranslator.core.translator as translator_module
 
         original_get = translator_module._http_get_google

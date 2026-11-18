@@ -8,5 +8,10 @@ venv/
 .ruff_cache/
 build/
 dist/
+release/
+installer/
+portable/
 data/
 *.log
+*.bundle
+.venv-build/

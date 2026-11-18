@@ -3,47 +3,32 @@
 The detailed comparison with the archived Tkinter version is in
 [feature-parity.md](feature-parity.md).
 
-## 0.1.0 - Foundation
+## 2.0.0 - PySide6 release
 
-- [x] PySide6 project structure
-- [x] Main window and translation popup
+- [x] Complete PySide6 rewrite with QtCore, QtGui and QtWidgets
+- [x] Main window, translation popup, OCR overlay and dialogs
 - [x] Turkish and English interface
-- [x] Translation engines and fallback chain
-- [x] History and saved words
-- [x] Global hotkey and tray
-- [x] Validation, logging and tests
+- [x] Translation engines, endpoint settings and fallback chain
+- [x] History, saved words, search, CSV export and study mode
+- [x] Global hotkeys, hotkey capture, tray, autostart and single instance
+- [x] Clipboard monitoring, OCR and text-to-speech
+- [x] Per-section settings save buttons and persistent window state
+- [x] Optimized PyInstaller onedir and single-file portable builds
+- [x] Optional Inno Setup installer
+- [x] Automated tests, Ruff, CI and packaged selftest
+- [x] Security policy, third-party notices and release guide
 
-## 0.2.0 - Feature parity
+## Next
 
-- [x] Connect OCR screen selection to the Qt UI
-- [x] OCR enable, hotkey and language settings
-- [x] Clipboard monitoring and settings
-- [x] Autostart settings and registry synchronization
-- [x] Single instance behavior and `--background`, `--minimized`, `--quit`
-- [x] Hotkey capture dialog
-- [x] LibreTranslate, Lingva and LLM settings panels
-- [x] TTS rate, history limit, popup auto-hide and clipboard restore settings
-- [x] Source language and window geometry persistence
-- [x] History search, copy, save, delete and detail dialog
-- [x] Saved words search, delete, CSV export and study mode
-- [x] About tab and background behavior panel
-- [x] Reset defaults, hide to tray and quit buttons
-- [x] Accent-insensitive language picker
-- [x] Right-click popup close and robust Escape handling
-- [x] `--selftest` and background start smoke coverage
-
-## 0.3.0 - Packaging
-
-- [ ] PyInstaller onedir build
-- [ ] Unused Qt module exclusion
-- [ ] Inno Setup installer
-- [ ] Code signing
-- [ ] Portable build
+- [ ] Code signing for Windows SmartScreen reputation
+- [ ] Real multi-monitor and mixed-DPI test pass
+- [ ] Accessibility labels and full keyboard navigation
+- [ ] Optional automatic update check with explicit user consent
+- [ ] More engine integrations, considered case by case
 
 ## Quality backlog
 
-- [ ] Real multi-monitor and mixed DPI testing
-- [ ] Accessibility labels and keyboard navigation
-- [ ] Crash reporting and rotating log viewer
 - [ ] Deterministic UI screenshot tests
 - [ ] Network integration tests behind an opt-in flag
+- [ ] Crash reporting and log viewer
+- [ ] Migration helper for archived Tkinter data

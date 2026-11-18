@@ -238,6 +238,14 @@ class WindowFeatureTests(unittest.TestCase):
         window._set_page(4)
         self.assertEqual(window.page_title.text(), "About")
 
+    def test_about_hides_expanded_user_path(self) -> None:
+        window = self._create_window()
+        with patch.dict(os.environ, {"QB_DATA_DIR": ""}):
+            self.assertEqual(
+                window._display_data_dir(),
+                r"%LOCALAPPDATA%\QBTranslator\data",
+            )
+
     def test_window_geometry_persists(self) -> None:
         window = self._create_window()
         window.setGeometry(120, 140, 1040, 720)
