@@ -1,0 +1,30 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyd
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- Derleme çıktıları ---
+build/
+dist/
+installer/
+portable/
+*.log
+*.tmp
+*.bak
+
+# --- Kullanıcıya özel veriler (ASLA commit edilmemeli) ---
+data/
+*.traineddata
+
+# --- İşletim sistemi ---
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# --- Yerel test / ekran görüntüleri ---
+settings_ui_test.png
