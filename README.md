@@ -60,6 +60,12 @@ python -m pytest
 - Network work must never block the Qt main thread.
 - Settings must be validated before they are written to disk.
 
+## Feature parity
+
+The archived Tkinter version and the current PySide6 version are compared in
+[docs/feature-parity.md](docs/feature-parity.md). It lists every known feature,
+its current status and the recommended restoration order.
+
 ## Packaging
 
 Packaging is intentionally not configured yet. It will be added after the
