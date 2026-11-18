@@ -22,6 +22,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - About tab, status chips, reset defaults, hide to tray and quit buttons
 - Accent-insensitive target language picker
 - Global Escape and right-click close behavior for the translation popup
+- Medium weight Segoe UI typography for thicker and smoother text
+- Per-section settings save buttons that stay disabled until a change
+- Explicit save hint and unsaved changes status in settings
 - Tests for dialogs, settings, history, words, clipboard, OCR, autostart,
   single instance and hotkey parsing
 

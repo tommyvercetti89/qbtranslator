@@ -254,6 +254,45 @@ class WindowFeatureTests(unittest.TestCase):
         self.assertEqual(reloaded.width(), 1040)
         self.assertEqual(reloaded.height(), 720)
 
+    def test_section_save_buttons_track_changes(self) -> None:
+        window = self._create_window()
+        self.assertFalse(
+            any(button.isEnabled() for button in window._settings_save_buttons.values())
+        )
+
+        window.settings_tts_rate.setValue(5)
+
+        self.assertTrue(window._settings_save_buttons["window"].isEnabled())
+        self.assertFalse(window._settings_save_buttons["general"].isEnabled())
+        self.assertEqual(window.settings_status.text(), "Unsaved changes")
+
+        window._settings_save_buttons["window"].click()
+
+        self.assertFalse(window._settings_save_buttons["window"].isEnabled())
+        self.assertEqual(window.config["tts_rate"], 5)
+        self.assertEqual(window.settings_status.text(), "Saved")
+
+    def test_general_and_ocr_section_saves(self) -> None:
+        window = self._create_window()
+
+        window.settings_hotkey.setText("ctrl+alt+shift+f3")
+        self.assertTrue(window._settings_save_buttons["general"].isEnabled())
+        window._settings_save_buttons["general"].click()
+
+        self.assertEqual(window.config["hotkey"], "ctrl+alt+shift+f3")
+        self.assertFalse(window._settings_save_buttons["general"].isEnabled())
+        self.assertFalse(window.config["tray_icon"])
+
+        window.settings_ocr_enabled.setChecked(True)
+        window.settings_ocr_hotkey.setText("ctrl+alt+shift+f2")
+        self.assertTrue(window._settings_save_buttons["ocr"].isEnabled())
+        window._settings_save_buttons["ocr"].click()
+
+        self.assertTrue(window.config["ocr_enabled"])
+        self.assertEqual(window.config["ocr_hotkey"], "ctrl+alt+shift+f2")
+        self.assertFalse(window._settings_save_buttons["ocr"].isEnabled())
+        self.assertIn("on", window.ocr_chip.text().lower())
+
 
 if __name__ == "__main__":
     unittest.main()

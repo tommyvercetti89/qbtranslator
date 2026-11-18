@@ -86,6 +86,7 @@ from qbtranslator.ui.theme import (
     GREEN,
     MUTED,
     RED,
+    YELLOW,
 )
 
 SHORTCUT = "ctrl+alt+t"
@@ -229,6 +230,8 @@ class MainWindow(QMainWindow):
         self._ocr_hotkey_ok = False
         self._ocr_active = False
         self._ocr_selector: RegionSelector | None = None
+        self._loading_settings = False
+        self._settings_save_buttons: dict[str, QPushButton] = {}
 
         self.task_signals = TaskSignals(self)
         self.capture_signals = CaptureSignals(self)
@@ -632,8 +635,11 @@ class MainWindow(QMainWindow):
         layout.setSpacing(14)
 
         general_card, general = self._card()
-        general.addWidget(self._section_title(t("settings.title")))
+        general.addLayout(self._settings_header("settings.title", "general"))
         general.addWidget(self._muted(t("settings.description")))
+        save_hint = self._muted(t("settings.save_hint"))
+        save_hint.setWordWrap(True)
+        general.addWidget(save_hint)
         general_grid = QGridLayout()
         general_grid.setHorizontalSpacing(18)
         general_grid.setVerticalSpacing(12)
@@ -666,7 +672,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(general_card)
 
         ocr_card, ocr = self._card()
-        ocr.addWidget(self._section_title(t("settings.ocr_title")))
+        ocr.addLayout(self._settings_header("settings.ocr_title", "ocr"))
         self.settings_ocr_enabled = QCheckBox(t("settings.ocr_enabled"))
         ocr.addWidget(self.settings_ocr_enabled)
         ocr_hotkey_row = QWidget()
@@ -696,7 +702,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(ocr_card)
 
         translate_card, translate = self._card()
-        translate.addWidget(self._section_title(t("nav.translate")))
+        translate.addLayout(self._settings_header("nav.translate", "translation"))
         translate_grid = QGridLayout()
         translate_grid.setHorizontalSpacing(18)
         translate_grid.setVerticalSpacing(12)
@@ -717,7 +723,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(translate_card)
 
         engine_card, engine = self._card()
-        engine.addWidget(self._section_title(t("settings.engine_settings")))
+        engine.addLayout(self._settings_header("settings.engine_settings", "engine"))
         engine_body = QWidget()
         engine_body_layout = QVBoxLayout(engine_body)
         engine_body_layout.setContentsMargins(0, 0, 0, 0)
@@ -771,7 +777,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(engine_card)
 
         misc_card, misc = self._card()
-        misc.addWidget(self._section_title(t("settings.window_audio")))
+        misc.addLayout(self._settings_header("settings.window_audio", "window"))
         misc_grid = QGridLayout()
         misc_grid.setHorizontalSpacing(18)
         misc_grid.setVerticalSpacing(10)
@@ -812,10 +818,6 @@ class MainWindow(QMainWindow):
         layout.addWidget(background_card)
 
         save_row = QHBoxLayout()
-        save = QPushButton(t("settings.save_apply"))
-        save.setObjectName("Accent")
-        save.clicked.connect(self._save_settings)
-        save_row.addWidget(save)
         reset = QPushButton(t("settings.reset"))
         reset.clicked.connect(self._reset_settings)
         save_row.addWidget(reset)
@@ -827,8 +829,96 @@ class MainWindow(QMainWindow):
         layout.addWidget(self._muted(t("settings.note")))
         layout.addStretch(1)
 
+        self._wire_settings_dirty_tracking()
         scroll.setWidget(content)
         return scroll
+
+    def _settings_header(self, title_key: str, section: str) -> QHBoxLayout:
+        row = QHBoxLayout()
+        row.setSpacing(10)
+        row.addWidget(self._section_title(t(title_key)))
+        row.addStretch(1)
+        button = QPushButton(t("settings.save_section"))
+        button.setObjectName("Accent")
+        button.setEnabled(False)
+        button.clicked.connect(
+            lambda _checked=False, name=section: self._save_settings_section(name)
+        )
+        row.addWidget(button)
+        self._settings_save_buttons[section] = button
+        return row
+
+    def _wire_settings_dirty_tracking(self) -> None:
+        watched = (
+            (self.settings_hotkey, "textChanged", "general"),
+            (self.settings_autostart, "toggled", "general"),
+            (self.settings_monitor, "toggled", "general"),
+            (self.settings_restore, "toggled", "general"),
+            (self.settings_language, "currentIndexChanged", "general"),
+            (self.settings_ocr_enabled, "toggled", "ocr"),
+            (self.settings_ocr_hotkey, "textChanged", "ocr"),
+            (self.settings_ocr_language, "currentIndexChanged", "ocr"),
+            (self.settings_target, "currentIndexChanged", "translation"),
+            (self.settings_engine, "currentIndexChanged", "translation"),
+            (self.settings_backup, "toggled", "translation"),
+            (self.settings_libre_endpoint, "textChanged", "engine"),
+            (self.settings_libre_key, "textChanged", "engine"),
+            (self.settings_lingva_endpoint, "textChanged", "engine"),
+            (self.settings_llm_endpoint, "textChanged", "engine"),
+            (self.settings_llm_model, "textChanged", "engine"),
+            (self.settings_llm_key, "textChanged", "engine"),
+            (self.settings_autohide, "valueChanged", "window"),
+            (self.settings_tts_rate, "valueChanged", "window"),
+            (self.settings_history_limit, "valueChanged", "window"),
+            (self.settings_tray, "toggled", "window"),
+        )
+        for widget, signal_name, section in watched:
+            getattr(widget, signal_name).connect(
+                lambda *_args, name=section: self._mark_settings_dirty(name)
+            )
+
+    def _mark_settings_dirty(self, section: str) -> None:
+        if self._loading_settings:
+            return
+        button = self._settings_save_buttons.get(section)
+        if button is not None:
+            button.setEnabled(True)
+        self.settings_status.setText(t("settings.unsaved"))
+        self.settings_status.setStyleSheet(f"color: {YELLOW};")
+
+    def _set_section_clean(self, section: str) -> None:
+        button = self._settings_save_buttons.get(section)
+        if button is not None:
+            button.setEnabled(False)
+        self._update_settings_status()
+
+    def _mark_section_saved(self, section: str) -> None:
+        button = self._settings_save_buttons.get(section)
+        if button is not None:
+            button.setEnabled(False)
+        if any(item.isEnabled() for item in self._settings_save_buttons.values()):
+            self.settings_status.setText(t("settings.unsaved"))
+            self.settings_status.setStyleSheet(f"color: {YELLOW};")
+        else:
+            self.settings_status.setText(t("settings.saved_section"))
+            self.settings_status.setStyleSheet(f"color: {GREEN};")
+
+    def _update_settings_status(self) -> None:
+        if not hasattr(self, "settings_status"):
+            return
+        if any(item.isEnabled() for item in self._settings_save_buttons.values()):
+            self.settings_status.setText(t("settings.unsaved"))
+            self.settings_status.setStyleSheet(f"color: {YELLOW};")
+        else:
+            self.settings_status.setText("")
+            self.settings_status.setStyleSheet("")
+
+    def _clear_settings_dirty(self) -> None:
+        for button in self._settings_save_buttons.values():
+            button.setEnabled(False)
+        if hasattr(self, "settings_status"):
+            self.settings_status.setText("")
+            self.settings_status.setStyleSheet("")
 
     def _build_about_page(self) -> QWidget:
         page = QWidget()
@@ -893,6 +983,14 @@ class MainWindow(QMainWindow):
     # Konfigürasyon
     # ------------------------------------------------------------------
     def _load_config_to_ui(self) -> None:
+        self._loading_settings = True
+        try:
+            self._load_config_to_ui_impl()
+        finally:
+            self._loading_settings = False
+            self._clear_settings_dirty()
+
+    def _load_config_to_ui_impl(self) -> None:
         self._set_combo_code(
             self.source_combo, self.config.get("source_lang", "auto"), True
         )
@@ -1031,50 +1129,214 @@ class MainWindow(QMainWindow):
         self._set_target_language(target)
 
     def _save_settings(self) -> None:
+        for section in ("general", "ocr", "translation", "engine", "window"):
+            button = self._settings_save_buttons.get(section)
+            if button is not None and button.isEnabled():
+                self._save_settings_section(section)
+
+    def _save_settings_section(self, section: str) -> None:
+        handlers = {
+            "general": self._save_general_settings,
+            "ocr": self._save_ocr_settings,
+            "translation": self._save_translation_settings,
+            "engine": self._save_engine_settings,
+            "window": self._save_window_settings,
+        }
+        handler = handlers.get(section)
+        if handler is not None:
+            handler()
+
+    def _validate_hotkey(self, spec: str) -> bool:
         from qbtranslator.core.win32util import parse_hotkey
 
-        hotkey_spec = (self.settings_hotkey.text() or "").strip().lower()
-        ocr_hotkey_spec = (self.settings_ocr_hotkey.text() or "").strip().lower()
-        ocr_enabled = self.settings_ocr_enabled.isChecked()
         try:
-            parse_hotkey(hotkey_spec)
-            if ocr_enabled:
-                parse_hotkey(ocr_hotkey_spec)
-                if ocr_hotkey_spec == hotkey_spec:
-                    raise ValueError(t("settings.same_hotkey"))
+            parse_hotkey(spec)
+            return True
         except ValueError as error:
             self._notify(t("status.invalid_hotkey", error=error), error=True)
+            return False
+
+    def _restore_section_ui(self, values: dict) -> None:
+        self._loading_settings = True
+        try:
+            if "hotkey" in values:
+                self.settings_hotkey.setText(values["hotkey"])
+            if "ocr_hotkey" in values:
+                self.settings_ocr_hotkey.setText(values["ocr_hotkey"])
+            if "ocr_enabled" in values:
+                self.settings_ocr_enabled.setChecked(bool(values["ocr_enabled"]))
+        finally:
+            self._loading_settings = False
+
+    def _save_general_settings(self) -> None:
+        hotkey_spec = (self.settings_hotkey.text() or "").strip().lower()
+        if not self._validate_hotkey(hotkey_spec):
+            return
+        ocr_hotkey_spec = (
+            self.config.get("ocr_hotkey", "ctrl+alt+o") or ""
+        ).strip().lower()
+        if self.config.get("ocr_enabled") and hotkey_spec == ocr_hotkey_spec:
+            self._notify(
+                t("status.invalid_hotkey", error=t("settings.same_hotkey")),
+                error=True,
+            )
             return
 
         old = {
             "hotkey": self.config.get("hotkey", SHORTCUT),
-            "ocr_hotkey": self.config.get("ocr_hotkey", "ctrl+alt+o"),
-            "ocr_enabled": bool(self.config.get("ocr_enabled")),
+            "autostart": bool(self.config.get("autostart", True)),
+            "clipboard_monitor": bool(self.config.get("clipboard_monitor")),
+            "restore_clipboard": bool(self.config.get("restore_clipboard", True)),
+            "ui_language": self.config.get("ui_language", "system"),
         }
-        target = label_to_code(self.settings_target.currentText(), "en")
-        engine = self.settings_engine.currentData() or "google"
         ui_language = self.settings_language.currentData() or "system"
         self.config.update(
             {
                 "hotkey": hotkey_spec,
-                "ocr_hotkey": ocr_hotkey_spec or "ctrl+alt+o",
-                "ocr_enabled": ocr_enabled,
                 "autostart": self.settings_autostart.isChecked(),
                 "clipboard_monitor": self.settings_monitor.isChecked(),
                 "restore_clipboard": self.settings_restore.isChecked(),
-                "target_lang": target,
-                "engine": engine,
                 "ui_language": ui_language,
-                "backup_engines": self.settings_backup.isChecked(),
+            }
+        )
+        if not self.store.save_config():
+            self.config.update(old)
+            self._notify(t("status.settings_save_failed"), error=True)
+            return
+
+        self._apply_hotkeys(main=True, ocr=False)
+        if not self._hotkey_ok:
+            self.config["hotkey"] = old["hotkey"]
+            self.store.save_config()
+            self._restore_section_ui({"hotkey": old["hotkey"]})
+            self._apply_hotkeys(main=True, ocr=False)
+            self._set_section_clean("general")
+            self._notify(t("status.hotkey_failed"), error=True)
+            return
+
+        self._apply_clipboard_monitor()
+        autostart_ok = self._apply_autostart()
+        self._update_chips()
+        self._mark_section_saved("general")
+        if not autostart_ok:
+            return
+        if resolve_language(ui_language) != self.ui_lang:
+            self._notify(t("settings.language_restart"))
+        else:
+            self._notify(t("status.settings_saved"))
+
+    def _save_ocr_settings(self) -> None:
+        ocr_enabled = self.settings_ocr_enabled.isChecked()
+        ocr_hotkey_spec = (self.settings_ocr_hotkey.text() or "").strip().lower()
+        if ocr_enabled:
+            if not self._validate_hotkey(ocr_hotkey_spec):
+                return
+            hotkey_spec = (self.config.get("hotkey", SHORTCUT) or "").strip().lower()
+            if ocr_hotkey_spec == hotkey_spec:
+                self._notify(
+                    t("status.invalid_hotkey", error=t("settings.same_hotkey")),
+                    error=True,
+                )
+                return
+
+        old = {
+            "ocr_enabled": bool(self.config.get("ocr_enabled")),
+            "ocr_hotkey": self.config.get("ocr_hotkey", "ctrl+alt+o"),
+            "ocr_language": self.config.get("ocr_language", "auto"),
+        }
+        self.config.update(
+            {
+                "ocr_enabled": ocr_enabled,
+                "ocr_hotkey": ocr_hotkey_spec or "ctrl+alt+o",
                 "ocr_language": label_to_code(
                     self.settings_ocr_language.currentText(), "auto"
                 ),
+            }
+        )
+        if not self.store.save_config():
+            self.config.update(old)
+            self._notify(t("status.settings_save_failed"), error=True)
+            return
+
+        self._apply_hotkeys(main=False, ocr=True)
+        if ocr_enabled and not self._ocr_hotkey_ok:
+            self.config.update(old)
+            self.store.save_config()
+            self._restore_section_ui(old)
+            self._apply_hotkeys(main=False, ocr=True)
+            self._set_section_clean("ocr")
+            self._notify(t("status.ocr_hotkey_failed"), error=True)
+            return
+
+        self._update_status_chips()
+        self._mark_section_saved("ocr")
+        self._notify(t("status.settings_saved"))
+
+    def _save_translation_settings(self) -> None:
+        target = label_to_code(self.settings_target.currentText(), "en")
+        if not target or target == "auto":
+            self._notify(t("status.target_required"), error=True)
+            return
+        old = {
+            "target_lang": self.config.get("target_lang", "en"),
+            "engine": self.config.get("engine", "google"),
+            "backup_engines": bool(self.config.get("backup_engines")),
+        }
+        engine = self.settings_engine.currentData() or "google"
+        self.config.update(
+            {
+                "target_lang": target,
+                "engine": engine,
+                "backup_engines": self.settings_backup.isChecked(),
+            }
+        )
+        if not self.store.save_config():
+            self.config.update(old)
+            self._notify(t("status.settings_save_failed"), error=True)
+            return
+
+        self._set_combo_code(self.target_combo, target, False)
+        if self.popup and self.popup.isVisible():
+            self.popup.set_target_display(target)
+        self._update_chips()
+        self._mark_section_saved("translation")
+        self._notify(t("status.settings_saved"))
+
+    def _save_engine_settings(self) -> None:
+        old = {
+            "libretranslate_endpoint": self.config.get("libretranslate_endpoint", ""),
+            "libretranslate_api_key": self.config.get("libretranslate_api_key", ""),
+            "lingva_endpoint": self.config.get("lingva_endpoint", ""),
+            "llm_endpoint": self.config.get("llm_endpoint", ""),
+            "llm_model": self.config.get("llm_model", ""),
+            "llm_api_key": self.config.get("llm_api_key", ""),
+        }
+        self.config.update(
+            {
                 "libretranslate_endpoint": self.settings_libre_endpoint.text().strip(),
                 "libretranslate_api_key": self.settings_libre_key.text().strip(),
                 "lingva_endpoint": self.settings_lingva_endpoint.text().strip(),
                 "llm_endpoint": self.settings_llm_endpoint.text().strip(),
                 "llm_model": self.settings_llm_model.text().strip(),
                 "llm_api_key": self.settings_llm_key.text().strip(),
+            }
+        )
+        if not self.store.save_config():
+            self.config.update(old)
+            self._notify(t("status.settings_save_failed"), error=True)
+            return
+        self._mark_section_saved("engine")
+        self._notify(t("status.settings_saved"))
+
+    def _save_window_settings(self) -> None:
+        old = {
+            "popup_autohide_seconds": self.config.get("popup_autohide_seconds", 8),
+            "tts_rate": self.config.get("tts_rate", 0),
+            "history_limit": self.config.get("history_limit", 500),
+            "tray_icon": bool(self.config.get("tray_icon", True)),
+        }
+        self.config.update(
+            {
                 "popup_autohide_seconds": self.settings_autohide.value(),
                 "tts_rate": self.settings_tts_rate.value(),
                 "history_limit": self.settings_history_limit.value(),
@@ -1082,30 +1344,15 @@ class MainWindow(QMainWindow):
             }
         )
         if not self.store.save_config():
+            self.config.update(old)
             self._notify(t("status.settings_save_failed"), error=True)
             return
 
-        self._set_combo_code(self.target_combo, target, False)
-        self._apply_settings()
-
-        if not self._hotkey_ok or (ocr_enabled and not self._ocr_hotkey_ok):
-            if not self._hotkey_ok:
-                self.config["hotkey"] = old["hotkey"]
-            if ocr_enabled and not self._ocr_hotkey_ok:
-                self.config["ocr_hotkey"] = old["ocr_hotkey"]
-                self.config["ocr_enabled"] = old["ocr_enabled"]
-            self.store.save_config()
-            self._load_config_to_ui()
-            self._apply_settings()
-            self._notify(t("status.hotkey_failed"), error=True)
-            return
-
-        if resolve_language(ui_language) != self.ui_lang:
-            self._notify(t("settings.language_restart"))
-        else:
+        tray_ok = self._apply_tray()
+        self._update_status_chips()
+        self._mark_section_saved("window")
+        if tray_ok:
             self._notify(t("status.settings_saved"))
-        self.settings_status.setText(t("status.settings_saved"))
-        self.settings_status.setStyleSheet(f"color: {GREEN};")
 
     def _apply_settings(self, initial: bool = False) -> None:
         self._apply_hotkeys(initial=initial)
@@ -1115,23 +1362,28 @@ class MainWindow(QMainWindow):
         self._update_chips()
         self._default_status()
 
-    def _apply_hotkeys(self, initial: bool = False) -> None:
-        self.hotkey.stop()
-        self.ocr_hotkey.stop()
-        hotkey_spec = self.config.get("hotkey", SHORTCUT)
-        try:
-            self._hotkey_ok = self.hotkey.start(
-                hotkey_spec, self.hotkey_bridge.triggered.emit
-            )
-        except ValueError:
-            self._hotkey_ok = False
-        if self._hotkey_ok:
-            self.hotkey_chip.setText(f"⌨  {hotkey_spec}")
-            self.hotkey_chip.setStyleSheet("color: #9ec8ff;")
-        else:
-            self.hotkey_chip.setText(f"⌨  {t('status.hotkey_missing')}")
-            self.hotkey_chip.setStyleSheet(f"color: {RED};")
+    def _apply_hotkeys(
+        self, initial: bool = False, main: bool = True, ocr: bool = True
+    ) -> None:
+        if main:
+            self.hotkey.stop()
+            hotkey_spec = self.config.get("hotkey", SHORTCUT)
+            try:
+                self._hotkey_ok = self.hotkey.start(
+                    hotkey_spec, self.hotkey_bridge.triggered.emit
+                )
+            except ValueError:
+                self._hotkey_ok = False
+            if self._hotkey_ok:
+                self.hotkey_chip.setText(f"⌨  {hotkey_spec}")
+                self.hotkey_chip.setStyleSheet("color: #9ec8ff;")
+            else:
+                self.hotkey_chip.setText(f"⌨  {t('status.hotkey_missing')}")
+                self.hotkey_chip.setStyleSheet(f"color: {RED};")
 
+        if not ocr:
+            return
+        self.ocr_hotkey.stop()
         ocr_enabled = bool(self.config.get("ocr_enabled"))
         self._ocr_hotkey_ok = True
         if ocr_enabled:
@@ -1141,7 +1393,10 @@ class MainWindow(QMainWindow):
                 from qbtranslator.core.win32util import parse_hotkey
 
                 parse_hotkey(ocr_spec)
-                if ocr_spec.strip().lower() == hotkey_spec.strip().lower():
+                if (
+                    ocr_spec.strip().lower()
+                    == self.config.get("hotkey", SHORTCUT).strip().lower()
+                ):
                     raise ValueError(t("settings.same_hotkey"))
                 self._ocr_hotkey_ok = self.ocr_hotkey.start(
                     ocr_spec, self.ocr_hotkey_bridge.triggered.emit
@@ -1199,22 +1454,25 @@ class MainWindow(QMainWindow):
         self._last_clipboard_text = text
         self._popup_translate(text)
 
-    def _apply_autostart(self) -> None:
+    def _apply_autostart(self) -> bool:
         if os.environ.get("QB_DISABLE_AUTOSTART") == "1":
-            return
+            return True
         want = bool(self.config.get("autostart", True))
         if not autostart.sync(want):
             self._notify(t("status.autostart_failed"), error=True)
+            return False
+        return True
 
-    def _apply_tray(self) -> None:
+    def _apply_tray(self) -> bool:
         if not bool(self.config.get("tray_icon", True)):
             if self.tray is not None:
                 self.tray.stop()
                 self.tray = None
-            return
+            return True
         if self.tray is None or not self.tray.available:
             self._start_tray()
         self._update_status_chips()
+        return bool(self.tray and self.tray.available)
 
     def _restore_geometry(self) -> None:
         value = self.config.get("window_geometry", "")
@@ -1247,9 +1505,9 @@ class MainWindow(QMainWindow):
         self.store.save_config()
         self._load_config_to_ui()
         self._apply_settings()
-        self.settings_status.setText(t("settings.reset"))
+        self.settings_status.setText(t("settings.reset_done"))
         self.settings_status.setStyleSheet(f"color: {GREEN};")
-        self._notify(t("settings.reset"))
+        self._notify(t("settings.reset_done"))
 
 
     # ------------------------------------------------------------------

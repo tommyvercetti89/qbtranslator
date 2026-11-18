@@ -206,7 +206,7 @@ recognition in a worker thread, error reporting and popup translation.
 | TTS rate | Yes | Yes | Var |
 | History limit | Yes | Yes | Var |
 | UI language | No | Turkish, English, System | Farkli |
-| Save and apply | Yes | Yes | Var |
+| Save and apply | Yes | Per-section Save buttons, enabled only after a change | Var |
 | Reset to defaults | Yes | Yes | Var |
 | Background behavior banner | Yes | Yes | Var |
 | Hide to tray button | Yes | Yes | Var |
@@ -265,6 +265,8 @@ archive.
 These are improvements or intentional changes, not regressions:
 
 - Modern Qt interface with dark theme and high-DPI handling
+- Medium weight Segoe UI typography for thicker and smoother text
+- Per-section settings save buttons with disabled and dirty states
 - Turkish and English interface catalogs
 - Interface language setting
 - English language labels and search aliases

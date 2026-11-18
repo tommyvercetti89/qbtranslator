@@ -22,7 +22,8 @@ YELLOW = "#f6c177"
 QSS = f"""
 * {{
     font-family: "Segoe UI";
-    font-size: 10pt;
+    font-size: 10.5pt;
+    font-weight: 500;
     color: {TEXT};
 }}
 QMainWindow, QWidget#Root {{
@@ -116,9 +117,9 @@ QPushButton#Accent:hover {{
     border-color: #3b90f0;
 }}
 QPushButton#Accent:disabled {{
-    background: #1c3a59;
-    border-color: #1c3a59;
-    color: #7b9bbd;
+    background: #151d26;
+    border-color: #202b38;
+    color: #5e6d7e;
 }}
 QPushButton#Ghost {{
     background: transparent;

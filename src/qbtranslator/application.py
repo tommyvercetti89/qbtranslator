@@ -26,7 +26,11 @@ def create_application(argv: list[str] | None = None) -> QApplication:
     app.setOrganizationName(APP_NAME)
     app.setApplicationVersion(APP_VERSION)
     app.setStyle("Fusion")
-    app.setFont(QFont("Segoe UI", 10))
+    font = QFont("Segoe UI", 10)
+    font.setPointSizeF(10.5)
+    font.setWeight(QFont.Weight.Medium)
+    font.setStyleStrategy(QFont.StyleStrategy.PreferAntialias)
+    app.setFont(font)
     app.setStyleSheet(QSS)
     app.setQuitOnLastWindowClosed(False)
 
