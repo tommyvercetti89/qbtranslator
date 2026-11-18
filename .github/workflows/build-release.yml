@@ -47,6 +47,7 @@ jobs:
           if-no-files-found: error
           path: |
             dist/QBTranslator/**
+            portable/QBTranslator-Portable-*.exe
             installer/QBTranslator-Setup-*.exe
 
       - name: Create GitHub Release
@@ -55,4 +56,6 @@ jobs:
         with:
           generate_release_notes: true
           fail_on_unmatched_files: true
-          files: installer/QBTranslator-Setup-*.exe
+          files: |
+            installer/QBTranslator-Setup-*.exe
+            portable/QBTranslator-Portable-*.exe

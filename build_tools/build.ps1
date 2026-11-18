@@ -24,7 +24,7 @@ $exe = Join-Path $Root "dist\QBTranslator\QBTranslator.exe"
 if (-not (Test-Path $exe)) { throw "EXE oluşmadı: $exe" }
 
 # Lisans ve README'yi taşınabilir pakete/ kuruluma dahil et
-foreach ($doc in @("README.md", "LICENSE", "THIRD_PARTY_NOTICES.md")) {
+foreach ($doc in @("README.md", "README.tr.md", "LICENSE", "THIRD_PARTY_NOTICES.md")) {
     $source = Join-Path $Root $doc
     if (Test-Path $source) {
         Copy-Item $source -Destination (Join-Path $Root "dist\QBTranslator") -Force
