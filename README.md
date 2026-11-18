@@ -13,10 +13,18 @@ are preserved in the sibling `HEPSİ` folder and `HEPSİ.zip` archive.
 - Modern dark desktop interface
 - Global shortcut to translate selected text
 - Frameless translation popup near the cursor
+- Global Escape and right-click close behavior for the popup
 - Turkish and English interface
 - Translation engines: Google Translate, MyMemory, LibreTranslate, Lingva and
   OpenAI-compatible LLM endpoints
-- Translation history and saved words
+- Engine-specific endpoint, model and API key settings
+- OCR screen region selection with Windows OCR and Tesseract fallback
+- Clipboard monitoring with URL and length filtering
+- Hotkey capture dialog and separate OCR shortcut
+- Translation history with search, detail, copy, save and delete tools
+- Saved words with search, CSV export, deletion and card study mode
+- Autostart, single instance, background start and quit command line flags
+- Window geometry and source language persistence
 - System tray support
 - Local JSON storage under `%LOCALAPPDATA%\QBTranslator\data`
 
@@ -25,6 +33,7 @@ are preserved in the sibling `HEPSİ` folder and `HEPSİ.zip` archive.
 - Windows 10 or Windows 11
 - Python 3.11 or newer
 - PySide6 6.10 or newer
+- OCR needs a Windows OCR language pack. Tesseract is an optional fallback.
 
 ## Development
 
@@ -38,6 +47,14 @@ From a source checkout without installing the package:
 
 ```powershell
 python run.py
+```
+
+Command line options:
+
+```text
+--background, --minimized   Start hidden in the system tray
+--quit                      Quit a running background instance
+--selftest                  Run Qt, import and mocked translation checks
 ```
 
 For a throwaway development data directory:

@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from PySide6.QtCore import QEvent, QPoint, QRect, Qt, QTimer
+from PySide6.QtCore import QEvent, QObject, QPoint, QRect, Qt, QTimer, Signal
 from PySide6.QtGui import QColor, QCursor, QFontMetrics, QGuiApplication
 from PySide6.QtWidgets import (
     QComboBox,
     QCompleter,
+    QDialog,
     QFrame,
     QGraphicsDropShadowEffect,
     QHBoxLayout,
@@ -18,12 +19,31 @@ from PySide6.QtWidgets import (
 )
 
 from qbtranslator.core.langs import label_to_code, language_label, language_name, target_labels
+from qbtranslator.core.win32util import GlobalHotkey
 from qbtranslator.i18n import get_language, t
+from qbtranslator.ui.language_picker import LanguagePickerDialog
 from qbtranslator.ui.theme import (
     MUTED,
     RED,
     TEXT,
 )
+
+
+class _EscapeBridge(QObject):
+    triggered = Signal()
+
+
+class _TargetCombo(QComboBox):
+    popup_shown = Signal()
+    popup_hidden = Signal()
+
+    def showPopup(self) -> None:
+        super().showPopup()
+        self.popup_shown.emit()
+
+    def hidePopup(self) -> None:
+        super().hidePopup()
+        self.popup_hidden.emit()
 
 
 class TranslationPopup(QWidget):
@@ -38,6 +58,7 @@ class TranslationPopup(QWidget):
         self.source_lang = source_lang or "auto"
         self.result = None
         self.target_code = app.config.get("target_lang", "tr")
+        self.request_id = 0
         self._drag_pos: QPoint | None = None
         self._closing = False
         self._actions_enabled = False
@@ -52,6 +73,11 @@ class TranslationPopup(QWidget):
         self._hide_timer = QTimer(self)
         self._hide_timer.setSingleShot(True)
         self._hide_timer.timeout.connect(self.close)
+
+        self._escape_bridge = _EscapeBridge(self)
+        self._escape_bridge.triggered.connect(self.close)
+        self._escape_listener = GlobalHotkey()
+        self._escape_started = False
 
         self._build()
 
@@ -119,7 +145,7 @@ class TranslationPopup(QWidget):
         target_label.setObjectName("PopupStatus")
         target_row.addWidget(target_label)
 
-        self.target_combo = QComboBox(self.panel)
+        self.target_combo = _TargetCombo(self.panel)
         self.target_combo.setEditable(True)
         self.target_combo.addItems(self.target_labels)
         self.target_combo.setFixedWidth(250)
@@ -133,7 +159,16 @@ class TranslationPopup(QWidget):
         self.target_combo.setCompleter(completer)
         self.target_combo.activated.connect(self._on_target_changed)
         self.target_combo.lineEdit().editingFinished.connect(self._on_target_changed)
+        self.target_combo.popup_shown.connect(self._on_combo_popup_shown)
+        self.target_combo.popup_hidden.connect(self._on_combo_popup_hidden)
         target_row.addWidget(self.target_combo)
+
+        self.language_search_button = QPushButton("⌕", self.panel)
+        self.language_search_button.setObjectName("Ghost")
+        self.language_search_button.setFixedWidth(30)
+        self.language_search_button.setToolTip(t("language_picker.title"))
+        self.language_search_button.clicked.connect(self._open_language_picker)
+        target_row.addWidget(self.language_search_button)
 
         self.swap_button = QPushButton("⇄", self.panel)
         self.swap_button.setObjectName("Ghost")
@@ -155,6 +190,9 @@ class TranslationPopup(QWidget):
 
         self.header_title.installEventFilter(self)
         self.panel.installEventFilter(self)
+        for widget in self.findChildren(QWidget):
+            widget.installEventFilter(self)
+        self.installEventFilter(self)
         self.set_actions_enabled(False)
 
     @staticmethod
@@ -237,6 +275,28 @@ class TranslationPopup(QWidget):
         self._restart_autohide()
 
     # ------------------------------------------------------------------
+    def _on_combo_popup_shown(self) -> None:
+        self._hide_timer.stop()
+        self._stop_escape_listener()
+
+    def _on_combo_popup_hidden(self) -> None:
+        if not self.isVisible():
+            return
+        self._start_escape_listener()
+        self._restart_autohide()
+
+    def _open_language_picker(self) -> None:
+        self._hide_timer.stop()
+        self._stop_escape_listener()
+        dialog = LanguagePickerDialog(self, self.target_code, self.ui_lang)
+        if dialog.exec() == QDialog.Accepted and dialog.selected_code:
+            self.target_code = dialog.selected_code
+            self.set_target_display(dialog.selected_code)
+            self.app.on_popup_target_changed(self, dialog.selected_code)
+        if self.isVisible():
+            self._start_escape_listener()
+            self._restart_autohide()
+
     def _on_target_changed(self, *_args) -> None:
         code = label_to_code(self.target_combo.currentText(), self.target_code)
         if not code or code == self.target_code:
@@ -341,7 +401,33 @@ class TranslationPopup(QWidget):
         self._restart_autohide()
         super().leaveEvent(event)
 
+    def showEvent(self, event) -> None:
+        super().showEvent(event)
+        self._start_escape_listener()
+
+    def _start_escape_listener(self) -> None:
+        if self._escape_started:
+            return
+        try:
+            self._escape_started = self._escape_listener.start(
+                "esc",
+                self._escape_bridge.triggered.emit,
+                allow_no_modifier=True,
+            )
+        except ValueError:
+            self._escape_started = False
+
+    def _stop_escape_listener(self) -> None:
+        try:
+            self._escape_listener.stop()
+        except Exception:
+            pass
+        self._escape_started = False
+
     def eventFilter(self, obj, event) -> bool:
+        if event.type() == QEvent.MouseButtonPress and event.button() == Qt.RightButton:
+            self.close()
+            return True
         if obj in (getattr(self, "header_title", None), getattr(self, "panel", None)):
             if event.type() == QEvent.MouseButtonPress and event.button() == Qt.LeftButton:
                 self._drag_pos = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
@@ -362,6 +448,7 @@ class TranslationPopup(QWidget):
 
     def closeEvent(self, event) -> None:
         self._hide_timer.stop()
+        self._stop_escape_listener()
         if not self._closing:
             self._closing = True
             self.app.on_popup_closed(self)

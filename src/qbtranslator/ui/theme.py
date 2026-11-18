@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from qbtranslator.core.paths import ASSETS_DIR
+
 BG = "#0b0f14"
 SIDEBAR = "#0e141b"
 PANEL = "#121922"
@@ -196,6 +198,7 @@ QCheckBox::indicator {{
 QCheckBox::indicator:checked {{
     background: {ACCENT_DARK};
     border-color: {ACCENT_DARK};
+    image: url("{((ASSETS_DIR / 'check.svg').as_posix())}");
 }}
 QListWidget {{
     background: transparent;

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import tempfile
 import unittest
@@ -13,6 +14,8 @@ from PySide6.QtWidgets import QApplication
 from qbtranslator.application import create_application
 from qbtranslator.core import storage
 from qbtranslator.ui.main_window import MainWindow
+
+os.environ["QB_DISABLE_AUTOSTART"] = "1"
 
 
 class MainWindowLanguageTests(unittest.TestCase):

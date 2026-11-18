@@ -144,5 +144,90 @@ class TranslateTests(unittest.TestCase):
             i18n.set_language("tr")
 
 
+class ConfigurableEngineTests(unittest.TestCase):
+    def test_libretranslate_uses_endpoint_and_key_from_config(self) -> None:
+        response = json.dumps(
+            {"translatedText": "Hello", "detectedLanguage": {"language": "tr"}}
+        )
+        text = "LibreTranslate ayar testi"
+        with patch(
+            "qbtranslator.core.translator._http_post_json", return_value=response
+        ) as post:
+            outcome = translator.translate(
+                text,
+                "tr",
+                "en",
+                {
+                    "engine": "libretranslate",
+                    "backup_engines": False,
+                    "libretranslate_endpoint": "http://127.0.0.1:5000",
+                    "libretranslate_api_key": "test-key",
+                },
+            )
+
+        self.assertEqual(outcome.text, "Hello")
+        self.assertEqual(outcome.engine, "libretranslate")
+        self.assertEqual(post.call_args.args[0], "http://127.0.0.1:5000/translate")
+        payload = post.call_args.args[1]
+        self.assertEqual(payload["q"], text)
+        self.assertEqual(payload["source"], "tr")
+        self.assertEqual(payload["target"], "en")
+        self.assertEqual(payload["api_key"], "test-key")
+
+    def test_lingva_uses_endpoint_from_config(self) -> None:
+        response = json.dumps(
+            {"translation": "Hello", "info": {"detectedSource": "tr"}}
+        )
+        text = "Lingva ayar testi"
+        with patch(
+            "qbtranslator.core.translator._http_get", return_value=response
+        ) as get:
+            outcome = translator.translate(
+                text,
+                "tr",
+                "en",
+                {
+                    "engine": "lingva",
+                    "backup_engines": False,
+                    "lingva_endpoint": "https://lingva.example",
+                },
+            )
+
+        self.assertEqual(outcome.text, "Hello")
+        self.assertEqual(outcome.engine, "lingva")
+        self.assertTrue(
+            get.call_args.args[0].startswith("https://lingva.example/api/v1/tr/en/")
+        )
+
+    def test_llm_uses_endpoint_model_and_key_from_config(self) -> None:
+        response = json.dumps({"choices": [{"message": {"content": "Hello"}}]})
+        text = "LLM ayar testi"
+        with patch(
+            "qbtranslator.core.translator._http_post_json", return_value=response
+        ) as post:
+            outcome = translator.translate(
+                text,
+                "tr",
+                "en",
+                {
+                    "engine": "llm",
+                    "backup_engines": False,
+                    "llm_endpoint": "http://127.0.0.1:11434/v1",
+                    "llm_model": "qwen3",
+                    "llm_api_key": "llm-key",
+                },
+            )
+
+        self.assertEqual(outcome.text, "Hello")
+        self.assertEqual(outcome.engine, "llm")
+        self.assertEqual(
+            post.call_args.args[0], "http://127.0.0.1:11434/v1/chat/completions"
+        )
+        self.assertEqual(post.call_args.args[1]["model"], "qwen3")
+        self.assertEqual(
+            post.call_args.args[2]["Authorization"], "Bearer llm-key"
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

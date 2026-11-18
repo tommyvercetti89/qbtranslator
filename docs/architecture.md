@@ -4,12 +4,17 @@
 
 ```text
 application.py
-    Creates QApplication, logging and the main window.
+    Creates QApplication, single instance guard, CLI flags and the main window.
 
 ui/
-    main_window.py   Main window, navigation, translation workflow, tray/hotkey wiring.
-    popup.py         Frameless translation popup near the cursor.
-    theme.py         Colors and Qt stylesheet.
+    main_window.py    Main window, navigation, translation workflow, tray/hotkey wiring.
+    popup.py          Frameless translation popup near the cursor.
+    hotkey_dialog.py  Shortcut capture dialog.
+    language_picker.py Searchable, accent-insensitive target language picker.
+    region_selector.py Full-screen OCR region overlay.
+    detail_dialog.py  History detail dialog.
+    study_dialog.py   Saved word card mode.
+    theme.py          Colors and Qt stylesheet.
 
 core/
     translator.py    Translation engines, fallback chain and response validation.
@@ -17,9 +22,11 @@ core/
     langs.py         Language catalog, labels and search normalization.
     paths.py         Application data and asset paths.
     win32util.py     Global hotkeys, clipboard, monitor and window APIs.
+    single_instance.py Named mutex based single instance guard.
+    autostart.py     HKCU Run entry synchronization.
     tray.py          Native Win32 tray icon.
     tts.py           Windows SAPI speech through PowerShell.
-    ocr.py           Screen capture and Windows OCR (to be connected to the UI).
+    ocr.py           Screen capture, Windows OCR and Tesseract fallback.
 
 i18n.py
     Small dependency-free catalog loader and translation helper.
@@ -30,6 +37,8 @@ i18n.py
 - Qt runs the UI on the main thread.
 - Translation work runs in `QThreadPool` through `TranslateTask`.
 - Selection capture runs in `QThreadPool` through `CaptureTask`.
+- OCR capture and recognition run in `QThreadPool` through `OCRTask`.
+- Clipboard monitoring runs in a daemon thread and emits a Qt signal.
 - TTS runs in a daemon thread and uses a Windows Job Object to clean up child
   processes when the application exits.
 - Worker code never touches Qt widgets directly. Results return through Qt signals.
@@ -46,6 +55,20 @@ i18n.py
 
 Text entered in the main window follows the same translation task path but writes
 to the main output panel instead of the popup.
+
+## OCR flow
+
+1. The OCR hotkey triggers the full-screen Qt region selector.
+2. The overlay reports a physical screen rectangle, independent of Qt scaling.
+3. An `OCRTask` captures and recognizes the region in `QThreadPool`.
+4. The recognized text is translated through the normal popup path.
+
+## Clipboard flow
+
+1. `ClipboardWatcher` polls the Windows clipboard sequence number.
+2. Short text, URLs and the application's own writes are filtered.
+3. Accepted text is passed to the Qt main thread through a signal and translated
+   in the popup.
 
 ## Data
 

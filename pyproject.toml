@@ -27,7 +27,7 @@ qbtranslator = "qbtranslator.application:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-qbtranslator = ["locales/*.json", "assets/*.ico"]
+qbtranslator = ["locales/*.json", "assets/*.ico", "assets/*.svg"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

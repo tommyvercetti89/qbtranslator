@@ -1,9 +1,8 @@
 """
 ocr.py - Ekran bölgesi seçimi ve Windows OCR.
 
-Seçim katmanı: tüm sanal ekranı kaplayan yarı saydam bir pencere; seçilen
-dikdörtgen bölge Windows bölge (region) API'siyle "delinir", böylece
-seçim alanı berrak kalırken dışarısı kararır.
+Bölge seçimi PySide6 arayüzünde (ui/region_selector.py) yapılır; bu modül
+yalnızca yakalama ve OCR işlemlerini sağlar.
 
 OCR: Windows 10/11'in yerleşik Windows.Media.Ocr motoru (PowerShell
 üzerinden). Motor yoksa, kuruluysa Tesseract CLI'ye düşer.
@@ -16,21 +15,11 @@ import shutil
 import subprocess
 import tempfile
 import time
-import tkinter as tk
 from pathlib import Path
 
-from qbtranslator.core.win32util import (
-    get_toplevel_hwnd,
-    get_virtual_screen,
-    set_window_region_hole,
-)
+from qbtranslator.i18n import t
 
 CREATE_NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
-
-OVERLAY_BG = "#000000"
-ACCENT = "#4da3ff"
-TEXT_COLOR = "#ffffff"
-MUTED = "#c7d2de"
 
 CAPTURE_SCRIPT = r"""
 $ErrorActionPreference = 'Stop'
@@ -200,128 +189,6 @@ if (-not $text -or $text.Trim().Length -eq 0) {
 """
 
 
-class ScreenRegionSelector:
-    """Tam ekran karartma katmanı; sürükleyerek OCR bölgesi seçtirir."""
-
-    def __init__(self, parent: tk.Misc, on_done) -> None:
-        self.on_done = on_done
-        self._done = False
-        self._start: tuple[int, int] | None = None
-        self._rect_id = None
-
-        self.vx, self.vy, self.vw, self.vh = get_virtual_screen()
-
-        self.win = tk.Toplevel(parent)
-        self.win.withdraw()
-        self.win.overrideredirect(True)
-        self.win.attributes("-topmost", True)
-        try:
-            self.win.attributes("-alpha", 0.35)
-        except tk.TclError:
-            pass
-        self.win.configure(bg=OVERLAY_BG)
-        self.win.geometry(f"{self.vw}x{self.vh}+{self.vx}+{self.vy}")
-
-        self.canvas = tk.Canvas(
-            self.win,
-            bg=OVERLAY_BG,
-            highlightthickness=0,
-            borderwidth=0,
-            cursor="crosshair",
-        )
-        self.canvas.pack(fill="both", expand=True)
-
-        self.canvas.create_text(
-            self.vw // 2,
-            30,
-            text="Çevrilecek alanı fareyle seçin   •   Esc / sağ tık: iptal",
-            fill=TEXT_COLOR,
-            font=("Segoe UI Semibold", 13),
-        )
-        self.canvas.create_text(
-            self.vw // 2,
-            self.vh - 28,
-            text="Seçim bittiğinde metin otomatik olarak tanınır ve çevrilir",
-            fill=MUTED,
-            font=("Segoe UI", 9),
-        )
-
-        self.canvas.bind("<ButtonPress-1>", self._on_press)
-        self.canvas.bind("<B1-Motion>", self._on_motion)
-        self.canvas.bind("<ButtonRelease-1>", self._on_release)
-        self.canvas.bind("<ButtonPress-3>", lambda _e: self._cancel())
-        self.win.bind("<Escape>", lambda _e: self._cancel())
-
-        self.win.deiconify()
-        self.win.lift()
-        try:
-            self.win.focus_force()
-        except tk.TclError:
-            pass
-        self.win.update_idletasks()
-        self._hwnd = get_toplevel_hwnd(self.win)
-
-    # ------------------------------------------------------------------
-    def _on_press(self, event) -> None:
-        self._start = (int(event.x), int(event.y))
-        if self._rect_id is not None:
-            self.canvas.delete(self._rect_id)
-        self._rect_id = self.canvas.create_rectangle(
-            event.x,
-            event.y,
-            event.x,
-            event.y,
-            outline=ACCENT,
-            width=2,
-            fill="",
-        )
-
-    def _on_motion(self, event) -> None:
-        if not self._start:
-            return
-        x1, y1 = self._start
-        x2, y2 = int(event.x), int(event.y)
-        left, right = sorted((x1, x2))
-        top, bottom = sorted((y1, y2))
-
-        # Kenarlık, açılan deliğin hemen dışında kalsın
-        self.canvas.coords(self._rect_id, left - 2, top - 2, right + 2, bottom + 2)
-        if self._hwnd:
-            set_window_region_hole(
-                self._hwnd, (left, top, max(0, right - left), max(0, bottom - top))
-            )
-
-    def _on_release(self, event) -> None:
-        if not self._start:
-            return
-        x1, y1 = self._start
-        x2, y2 = int(event.x), int(event.y)
-        left, right = sorted((x1, x2))
-        top, bottom = sorted((y1, y2))
-        width, height = right - left, bottom - top
-        if width < 12 or height < 12:
-            self._cancel()
-            return
-        region = (self.vx + left, self.vy + top, width, height)
-        self._finish(region)
-
-    def _cancel(self) -> None:
-        self._finish(None)
-
-    def _finish(self, result) -> None:
-        if self._done:
-            return
-        self._done = True
-        try:
-            self.win.destroy()
-        except tk.TclError:
-            pass
-        try:
-            self.on_done(result)
-        except Exception:
-            pass
-
-
 # ----------------------------------------------------------------------
 # OCR
 # ----------------------------------------------------------------------
@@ -363,7 +230,7 @@ def capture_region_to_png(x: int, y: int, width: int, height: int, path: str) ->
     except Exception as error:
         return str(error)
     if result.returncode != 0 or not os.path.exists(path):
-        return (result.stderr or result.stdout or "Ekran görüntüsü alınamadı").strip()
+        return (result.stderr or result.stdout or t("ocr.error.capture")).strip()
     return ""
 
 
@@ -398,14 +265,14 @@ def ocr_image_file(path: str, language: str = "auto") -> tuple[str, str]:
 
     error_message = (result.stderr or result.stdout or "").strip()
     if not error_message:
-        error_message = "Windows OCR motoru kullanılamadı."
-    return "", error_message.splitlines()[-1] if error_message else "OCR hatası"
+        error_message = t("ocr.error.engine_missing")
+    return "", error_message.splitlines()[-1] if error_message else t("ocr.error.generic")
 
 
 def _tesseract_fallback(path: str, language: str = "auto") -> tuple[str, str]:
     executable = shutil.which("tesseract")
     if not executable:
-        return "", "Windows OCR kullanılamıyor ve Tesseract kurulu değil."
+        return "", t("ocr.error.tesseract_missing")
 
     tesseract_lang = _tesseract_language(language)
 
@@ -436,7 +303,7 @@ def _tesseract_fallback(path: str, language: str = "auto") -> tuple[str, str]:
             return text, ""
         last_error = (result.stderr or "").strip()
 
-    return "", (last_error or "Tesseract metin bulamadı")
+    return "", (last_error or t("ocr.error.tesseract_empty"))
 
 
 LAST_CAPTURE_PATH = Path(tempfile.gettempdir()) / "QBTranslator_ocr_last.png"
@@ -577,7 +444,7 @@ def preprocess_image(
     except Exception as error:
         return str(error)
     if result.returncode != 0 or not os.path.exists(target):
-        return (result.stderr or result.stdout or "Görüntü ön işleme başarısız").strip()
+        return (result.stderr or result.stdout or t("ocr.error.preprocess")).strip()
     return ""
 
 
@@ -589,7 +456,7 @@ def recognize_region(
     Dönüş: (metin, hata_mesajı). Başarılıysa hata boştur.
     """
     if width <= 0 or height <= 0:
-        return "", "Geçersiz seçim alanı."
+        return "", t("ocr.error.invalid_region")
 
     # Seçim katmanı kapandıktan sonra ekranın yenilenmesini bekle
     time.sleep(0.3)
@@ -602,7 +469,7 @@ def recognize_region(
     try:
         error = capture_region_to_png(x, y, width, height, image_path)
         if error:
-            return "", f"Ekran görüntüsü alınamadı: {error}"
+            return "", t("ocr.error.capture_detail", error=error)
 
         text, error = ocr_image_file(image_path, language)
         if text:
@@ -632,7 +499,7 @@ def recognize_region(
             shutil.copyfile(image_path, LAST_CAPTURE_PATH)
         except OSError:
             pass
-        return "", first_error or "OCR metni tanınamadı."
+        return "", first_error or t("ocr.error.no_text")
     finally:
         try:
             shutil.rmtree(temp_dir, ignore_errors=True)

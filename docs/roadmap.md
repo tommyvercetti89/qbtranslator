@@ -15,21 +15,22 @@ The detailed comparison with the archived Tkinter version is in
 
 ## 0.2.0 - Feature parity
 
-- [ ] Connect OCR screen selection to the Qt UI
-- [ ] OCR enable, hotkey and language settings
-- [ ] Clipboard monitoring and settings
-- [ ] Autostart settings and registry synchronization
-- [ ] Single instance behavior and `--background`, `--minimized`, `--quit`
-- [ ] Hotkey capture dialog
-- [ ] LibreTranslate, Lingva and LLM settings panels
-- [ ] TTS rate, history limit, popup auto-hide and clipboard restore settings
-- [ ] Source language and window geometry persistence
-- [ ] History search, copy, save, delete and detail dialog
-- [ ] Saved words search, delete, CSV export and study mode
-- [ ] About tab and background behavior panel
-- [ ] Reset defaults, hide to tray and quit buttons
-- [ ] Accent-insensitive language picker
-- [ ] Right-click popup close and robust Escape handling
+- [x] Connect OCR screen selection to the Qt UI
+- [x] OCR enable, hotkey and language settings
+- [x] Clipboard monitoring and settings
+- [x] Autostart settings and registry synchronization
+- [x] Single instance behavior and `--background`, `--minimized`, `--quit`
+- [x] Hotkey capture dialog
+- [x] LibreTranslate, Lingva and LLM settings panels
+- [x] TTS rate, history limit, popup auto-hide and clipboard restore settings
+- [x] Source language and window geometry persistence
+- [x] History search, copy, save, delete and detail dialog
+- [x] Saved words search, delete, CSV export and study mode
+- [x] About tab and background behavior panel
+- [x] Reset defaults, hide to tray and quit buttons
+- [x] Accent-insensitive language picker
+- [x] Right-click popup close and robust Escape handling
+- [x] `--selftest` and background start smoke coverage
 
 ## 0.3.0 - Packaging
 

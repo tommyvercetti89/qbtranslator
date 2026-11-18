@@ -12,30 +12,30 @@ rewrite. Status values:
 
 | Feature | Tkinter 1.0.0 | PySide6 0.1.0 | Status |
 |---|---|---|---|
-| Main tabs | Translate, History, Saved Words, Settings, About | Translate, History, Words, Settings | Kismi |
-| About tab | Usage, privacy, data directory, engines | Missing | Yok |
-| Header chips | Hotkey, clipboard monitor, OCR | Engine, target | Kismi |
-| Status bar | Engine, target, hotkey, clipboard, OCR | Engine, target, hotkey | Kismi |
-| Window geometry persistence | Saved and restored, off-screen recovery | Missing | Yok |
+| Main tabs | Translate, History, Saved Words, Settings, About | Translate, History, Words, Settings, About | Var |
+| About tab | Usage, privacy, data directory, engines | Usage, privacy, data directory, engines | Var |
+| Header chips | Hotkey, clipboard monitor, OCR | Engine and target in header; hotkey, clipboard and OCR chips in sidebar | Var |
+| Status bar | Engine, target, hotkey, clipboard, OCR | Engine, target, hotkey, clipboard and OCR status | Var |
+| Window geometry persistence | Saved and restored, off-screen recovery | Saved and restored, off-screen recovery | Var |
 | Minimum window size | 900 x 640 | 980 x 680 | Farkli |
-| Single instance | Named mutex, show existing window | Missing | Yok |
-| Background second launch | Silent when already running | Missing | Yok |
-| `--background` / `--minimized` | Start in tray | Missing | Yok |
-| `--quit` | Quit a background instance | Missing | Yok |
-| `--selftest` | Tk, imports and mocked translation | Missing, only smoke flags | Yok |
+| Single instance | Named mutex, show existing window | Named mutex, show existing window | Var |
+| Background second launch | Silent when already running | Silent when already running | Var |
+| `--background` / `--minimized` | Start in tray | Start in tray | Var |
+| `--quit` | Quit a background instance | Quit a background instance | Var |
+| `--selftest` | Tk, imports and mocked translation | Qt, imports and mocked translation | Var |
 | DPI awareness | Explicit Win32 DPI setting | Qt high-DPI handling | Farkli |
 | System tray | Show, open, quit, balloon | Show, open, quit, balloon | Var |
 | X button hides to tray | Yes | Yes | Var |
-| Autostart | HKCU Run entry | Missing | Yok |
-| Tray icon setting | Config key, no UI | Config key, no UI | Kismi |
+| Autostart | HKCU Run entry | HKCU Run entry, UI toggle | Var |
+| Tray icon setting | Config key, no UI | Settings toggle | Var |
 
 ## 2. Translate tab and manual workflow
 
 | Feature | Tkinter 1.0.0 | PySide6 0.1.0 | Status |
 |---|---|---|---|
 | Source language combo | Auto plus languages | Auto plus languages | Var |
-| Target language combo | Searchable list | Editable combo with completer | Kismi |
-| Source selection persistence | Saved after selection | Not saved to config | Yok |
+| Target language combo | Searchable list | Editable combo with completer and accent-insensitive picker | Var |
+| Source selection persistence | Saved after selection | Saved after selection | Var |
 | Target selection persistence | Saved and synchronized | Saved and synchronized | Var |
 | Source/target swap | Yes | Yes | Var |
 | Manual input | Yes | Yes | Var |
@@ -67,10 +67,10 @@ rewrite. Status values:
 | MyMemory response validation | Yes | Yes | Var |
 | Same-language short circuit | Yes | Yes | Var |
 | Long text chunking | Yes | Yes | Var |
-| LibreTranslate endpoint/API key UI | Yes | Missing | Yok |
-| Lingva endpoint UI | Yes | Missing | Yok |
-| LLM endpoint, model and API key UI | Yes | Missing | Yok |
-| Engine detail panels | Yes, dynamic per engine | Missing | Yok |
+| LibreTranslate endpoint/API key UI | Yes | Endpoint and optional API key fields | Var |
+| Lingva endpoint UI | Yes | Endpoint field | Var |
+| LLM endpoint, model and API key UI | Yes | Endpoint, model and optional API key fields | Var |
+| Engine detail panels | Yes, dynamic per engine | Dynamic panel for each engine | Var |
 | Engine labels in UI | Turkish only | Turkish and English | Farkli |
 | Engine error localization | Turkish | Turkish and English | Var |
 
@@ -81,15 +81,15 @@ rewrite. Status values:
 | Global hotkey listener | Yes | Yes | Var |
 | Selected text capture with Ctrl+C | Yes | Yes | Var |
 | Modifier release wait | Yes | Yes | Var |
-| Clipboard restore | Yes | Core exists, UI toggle missing | Kismi |
+| Clipboard restore | Yes | Core plus UI toggle | Var |
 | Capture guard | Yes | Yes | Var |
-| Hotkey registration result | Reported in chips | Reported in sidebar and status | Kismi |
+| Hotkey registration result | Reported in chips | Reported in sidebar and status | Var |
 | Hotkey conflict rollback | Yes | Yes | Var |
-| Hotkey capture dialog | Yes | Missing | Yok |
+| Hotkey capture dialog | Yes | Dedicated capture dialog | Var |
 | Parse and validate hotkey | Yes | Yes | Var |
-| Pause hotkeys during capture | Yes | Not applicable without dialog | Yok |
-| OCR hotkey | Yes | Missing | Yok |
-| Hotkey chip | Header plus status | Sidebar plus status | Kismi |
+| Pause hotkeys during capture | Yes | Yes | Var |
+| OCR hotkey | Yes | Yes, separate global shortcut | Var |
+| Hotkey chip | Header plus status | Sidebar plus status | Var |
 
 ## 5. Translation popup
 
@@ -108,11 +108,11 @@ rewrite. Status values:
 | Read aloud | Yes | Yes | Var |
 | Save word | Yes | Yes | Var |
 | Close button | Yes | Yes | Var |
-| Escape to close | Usually when focused | Only when focused | Kismi |
-| Right-click to close | Yes | Missing | Yok |
-| Auto-hide | Yes, configurable | Yes, config default, no UI | Kismi |
+| Escape to close | Usually when focused | Global Escape listener while popup is visible | Var |
+| Right-click to close | Yes | Yes | Var |
+| Auto-hide | Yes, configurable | Yes, configurable in settings | Var |
 | Target language change | Yes | Yes | Var |
-| Searchable target language picker | Dedicated picker with accent-insensitive search | Combo with completer, no accent folding | Kismi |
+| Searchable target language picker | Dedicated picker with accent-insensitive search | Dedicated picker with accent-insensitive search | Var |
 | Swap translation | Yes | Yes | Var |
 | Target sync with main and settings | Yes | Yes | Var |
 
@@ -120,52 +120,52 @@ rewrite. Status values:
 
 | Feature | Tkinter 1.0.0 | PySide6 0.1.0 | Status |
 |---|---|---|---|
-| OCR enable setting | Yes | Missing | Yok |
-| Separate OCR hotkey | Yes | Missing | Yok |
-| OCR language setting | Yes | Field exists, no OCR action | Kismi |
-| Full-screen region selector | Yes | Missing | Yok |
-| Dimmed outside selection | Yes | Missing | Yok |
-| Esc and right-click cancel | Yes | Missing | Yok |
-| Minimum selection size | 12 px | Missing | Yok |
-| DPI-aware screen capture | Yes | Core exists | Kismi |
-| Windows OCR | Yes | Core exists | Kismi |
-| OCR language fallback | Yes | Core exists | Kismi |
-| Installed OCR language fallback | Yes | Core exists | Kismi |
-| Image upscale | 2x, 3x for small regions | Core exists | Kismi |
-| Dark theme inversion | Yes | Core exists | Kismi |
-| Tesseract fallback | Yes, with language | Core exists | Kismi |
-| Failure screenshot path | Yes | Core exists | Kismi |
-| OCR result in popup | Yes | Missing | Yok |
+| OCR enable setting | Yes | Settings toggle | Var |
+| Separate OCR hotkey | Yes | Yes, capture dialog | Var |
+| OCR language setting | Yes | Yes | Var |
+| Full-screen region selector | Yes | Yes, Qt overlay | Var |
+| Dimmed outside selection | Yes | Yes | Var |
+| Esc and right-click cancel | Yes | Yes | Var |
+| Minimum selection size | 12 px | 12 px | Var |
+| DPI-aware screen capture | Yes | Yes | Var |
+| Windows OCR | Yes | Yes | Var |
+| OCR language fallback | Yes | Yes | Var |
+| Installed OCR language fallback | Yes | Yes | Var |
+| Image upscale | 2x, 3x for small regions | 2x, 3x for small regions | Var |
+| Dark theme inversion | Yes | Yes | Var |
+| Tesseract fallback | Yes, with language | Yes, with language | Var |
+| Failure screenshot path | Yes | Yes | Var |
+| OCR result in popup | Yes | Yes | Var |
 
-The OCR core module is present, but no PySide6 overlay or OCR workflow uses it
-yet. This is the largest missing feature group.
+The OCR workflow is fully connected to the PySide6 interface: overlay selection,
+recognition in a worker thread, error reporting and popup translation.
 
 ## 7. Clipboard monitoring
 
 | Feature | Tkinter 1.0.0 | PySide6 0.1.0 | Status |
 |---|---|---|---|
-| Clipboard watcher | Yes | Core class exists, not started | Yok |
-| Enable/disable setting | Yes | Missing | Yok |
-| URL filtering | Yes | Missing | Yok |
-| Length filtering | Yes | Missing | Yok |
-| Suppress own clipboard writes | Yes | Missing in main window | Yok |
-| Restore clipboard after capture | Yes | Core setting used, no UI | Kismi |
-| Clipboard translation popup | Yes | Missing | Yok |
+| Clipboard watcher | Yes | Yes, started from settings | Var |
+| Enable/disable setting | Yes | Yes | Var |
+| URL filtering | Yes | Yes | Var |
+| Length filtering | Yes | Yes | Var |
+| Suppress own clipboard writes | Yes | Yes | Var |
+| Restore clipboard after capture | Yes | Yes | Var |
+| Clipboard translation popup | Yes | Yes | Var |
 
 ## 8. History
 
 | Feature | Tkinter 1.0.0 | PySide6 0.1.0 | Status |
 |---|---|---|---|
 | History storage | Yes | Yes | Var |
-| History limit | Configurable in settings | Storage enforces config, no UI | Kismi |
-| Search | Yes, Turkish-aware | Missing | Yok |
+| History limit | Configurable in settings | Configurable in settings | Var |
+| Search | Yes, Turkish-aware | Yes, Turkish-aware | Var |
 | Refresh | Yes | Yes automatically | Var |
 | Table columns | Date, source, translation, languages, engine | Single wrapped list | Kismi |
-| Copy selected translation | Yes | Missing | Yok |
-| Save selected as word | Yes | Missing | Yok |
-| Delete selected record | Yes | Missing | Yok |
+| Copy selected translation | Yes | Yes | Var |
+| Save selected as word | Yes | Yes | Var |
+| Delete selected record | Yes | Yes | Var |
 | Clear all | Yes | Yes | Var |
-| Detail window | Separate dialog | Loads record into translate tab | Kismi |
+| Detail window | Separate dialog | Separate dialog with copy and speak | Var |
 | Open history item | Double click detail | Double click loads item | Farkli |
 | Empty state | No explicit message | Yes | Var |
 
@@ -175,13 +175,13 @@ yet. This is the largest missing feature group.
 |---|---|---|---|
 | Add word | Yes | Yes | Var |
 | Duplicate detection | Yes, Turkish-aware | Yes, Turkish-aware | Var |
-| Search | Yes, Turkish-aware | Missing | Yok |
+| Search | Yes, Turkish-aware | Yes, Turkish-aware | Var |
 | Table columns | Word, translation, languages, date | Single wrapped list | Kismi |
-| Delete selected | Yes | Missing | Yok |
+| Delete selected | Yes | Yes | Var |
 | Clear all | Yes | Yes | Var |
-| CSV export | UTF-8 BOM, Excel friendly | Missing | Yok |
-| Card study mode | Yes, reveal, next, previous, speak | Missing | Yok |
-| Keyboard navigation in cards | Space, Left, Right | Missing | Yok |
+| CSV export | UTF-8 BOM, Excel friendly | UTF-8 BOM, Excel friendly | Var |
+| Card study mode | Yes, reveal, next, previous, speak | Reveal, next, previous and speak | Var |
+| Keyboard navigation in cards | Space, Left, Right | Space, Left, Right | Var |
 | Empty state | No explicit message | Yes | Var |
 
 ## 10. Settings
@@ -189,29 +189,29 @@ yet. This is the largest missing feature group.
 | Feature | Tkinter 1.0.0 | PySide6 0.1.0 | Status |
 |---|---|---|---|
 | Hotkey text field | Yes | Yes | Var |
-| Hotkey capture button | Yes | Missing | Yok |
-| Autostart toggle | Yes | Missing | Yok |
-| Clipboard monitor toggle | Yes | Missing | Yok |
-| Restore clipboard toggle | Yes | Missing | Yok |
-| OCR enable toggle | Yes | Missing | Yok |
-| OCR hotkey field | Yes | Missing | Yok |
-| OCR language field | Yes | Yes, but OCR missing | Kismi |
+| Hotkey capture button | Yes | Yes | Var |
+| Autostart toggle | Yes | Yes | Var |
+| Clipboard monitor toggle | Yes | Yes | Var |
+| Restore clipboard toggle | Yes | Yes | Var |
+| OCR enable toggle | Yes | Yes | Var |
+| OCR hotkey field | Yes | Yes, with capture | Var |
+| OCR language field | Yes | Yes | Var |
 | Default target language | Yes | Yes | Var |
 | Primary engine | Yes | Yes | Var |
 | Backup engines toggle | Yes | Yes | Var |
-| LibreTranslate endpoint and key | Yes | Missing | Yok |
-| Lingva endpoint | Yes | Missing | Yok |
-| LLM endpoint, model and key | Yes | Missing | Yok |
-| Popup auto-hide seconds | Yes | Config used, no UI | Kismi |
-| TTS rate | Yes | Config used, no UI | Kismi |
-| History limit | Yes | Config used, no UI | Kismi |
+| LibreTranslate endpoint and key | Yes | Yes | Var |
+| Lingva endpoint | Yes | Yes | Var |
+| LLM endpoint, model and key | Yes | Yes | Var |
+| Popup auto-hide seconds | Yes | Yes | Var |
+| TTS rate | Yes | Yes | Var |
+| History limit | Yes | Yes | Var |
 | UI language | No | Turkish, English, System | Farkli |
 | Save and apply | Yes | Yes | Var |
-| Reset to defaults | Yes | Missing | Yok |
-| Background behavior banner | Yes | Missing | Yok |
-| Hide to tray button | Yes | Missing | Yok |
-| Quit application button | Yes | Missing | Yok |
-| Settings status text | Yes | Yes, via status bar | Kismi |
+| Reset to defaults | Yes | Yes | Var |
+| Background behavior banner | Yes | Yes | Var |
+| Hide to tray button | Yes | Yes | Var |
+| Quit application button | Yes | Yes | Var |
+| Settings status text | Yes | Yes, in settings and status bar | Var |
 
 ## 11. TTS and audio
 
@@ -220,10 +220,10 @@ yet. This is the largest missing feature group.
 | Windows SAPI speech | Yes | Yes | Var |
 | Speak from popup | Yes | Yes | Var |
 | Speak from manual output | Yes | Yes | Var |
-| Speak from history detail | Yes | Not available | Yok |
-| Speak from study cards | Yes | Study mode missing | Yok |
+| Speak from history detail | Yes | Yes | Var |
+| Speak from study cards | Yes | Yes | Var |
 | Stop current speech | Yes | Yes | Var |
-| TTS rate setting | Yes | No UI | Kismi |
+| TTS rate setting | Yes | Yes | Var |
 | Kill speech process on exit | Job Object | Job Object | Var |
 | Voice selection | No | No | Ayni |
 
@@ -239,7 +239,7 @@ yet. This is the largest missing feature group.
 | Source-relative data directory | Yes | No | Farkli |
 | LocalAppData fallback | Yes | Always LocalAppData | Farkli |
 | `QB_DATA_DIR` override | Yes | Yes | Var |
-| Window geometry persistence | Yes | Missing | Yok |
+| Window geometry persistence | Yes | Saved and restored | Var |
 | Migration from old data | Not applicable | Missing | Yok |
 
 The data path change is intentional for the packaged application, but existing
@@ -255,10 +255,10 @@ archive.
 | Tray balloon | Yes | Yes | Var |
 | Explorer restart icon restore | Yes | Yes | Var |
 | Hide to tray on X | Yes | Yes | Var |
-| Explicit hide/quit UI | Yes | Missing | Yok |
-| Autostart registry | Yes | Missing | Yok |
-| Single instance messaging | Yes | Missing | Yok |
-| Window activation by title | Yes | Missing | Yok |
+| Explicit hide/quit UI | Yes | Yes | Var |
+| Autostart registry | Yes | Yes | Var |
+| Single instance messaging | Yes | Yes | Var |
+| Window activation by title | Yes | Yes | Var |
 
 ## 14. New behavior in the PySide6 version
 
@@ -275,11 +275,13 @@ These are improvements or intentional changes, not regressions:
 - More robust hotkey registration and fallback rollback
 - Better JSON backup and malformed record recovery
 - New placeholder states for empty history and word lists
+- OCR overlay, clipboard monitoring, history and word tools, card study mode
+- Autostart, single instance and background command line lifecycle
 - No em dash in the active project UI or documentation
 
-## 15. Recommended restoration order
+## 15. Restoration order and remaining work
 
-### P0: Core parity
+### Completed
 
 1. OCR selection overlay and OCR workflow
 2. Clipboard monitoring and settings
@@ -288,20 +290,17 @@ These are improvements or intentional changes, not regressions:
 5. Engine settings panels for LibreTranslate, Lingva and LLM
 6. Settings fields for TTS rate, history limit, popup auto-hide and clipboard restore
 7. Source language persistence and window geometry persistence
-
-### P1: Workflow parity
-
 8. History search, copy, save, delete and detail dialog
 9. Saved words search, delete, CSV export and study mode
 10. About tab
 11. Reset defaults, hide to tray and quit buttons
 12. Status chips for clipboard and OCR
-13. Right-click popup close and robust Escape handling
-14. Accent-insensitive language picker identical to the old picker
-
-### P2: Distribution and polish
-
+13. Right-click popup close and global Escape handling
+14. Accent-insensitive language picker
 15. Background and quit command-line behavior
+
+### Remaining
+
 16. Packaging and installer
 17. Data migration from Tkinter
 18. Real multi-monitor and mixed-DPI test pass

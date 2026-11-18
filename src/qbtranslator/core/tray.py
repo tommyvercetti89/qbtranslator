@@ -8,7 +8,7 @@ tray.py - Windows sistem tepsisi simgesi (yalnızca standart kütüphane / ctype
   * Balon bildirimi (arka plana küçültüldüğünde)
   * İkinci örnek / --quit için gizli pencere mesajları
 
-Tkinter ana döngüsüne dokunmaz; kendi gizli Win32 penceresi ve mesaj
+Qt ana döngüsüne dokunmaz; kendi gizli Win32 penceresi ve mesaj
 döngüsü ayrı bir thread'de çalışır. Geri çağrımlar yalnızca kuyruğa
 olay bırakır (thread-safe).
 """

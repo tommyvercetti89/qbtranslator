@@ -384,7 +384,7 @@ _SPECIAL_KEYS = {
 }
 
 
-def parse_hotkey(spec: str) -> tuple[int, int]:
+def parse_hotkey(spec: str, require_modifier: bool = True) -> tuple[int, int]:
     """
     'ctrl+alt+t' formatındaki kısayolu (modifiers, vk) çiftine çevirir.
     Geçersizse ValueError fırlatır.
@@ -411,7 +411,7 @@ def parse_hotkey(spec: str) -> tuple[int, int]:
 
     if vk is None:
         raise ValueError("Kısayolda bir normal tuş olmalı (örn. ctrl+alt+t).")
-    if mods == 0:
+    if require_modifier and mods == 0:
         raise ValueError("En az bir değiştirici tuş gerekli (Ctrl, Alt, Shift veya Win).")
 
     return mods | MOD_NOREPEAT, vk
@@ -430,9 +430,11 @@ class GlobalHotkey:
         self._start_error: int | None = None
         self._registered = False
 
-    def start(self, spec: str, callback, on_error=None) -> bool:
+    def start(
+        self, spec: str, callback, on_error=None, allow_no_modifier: bool = False
+    ) -> bool:
         self.stop()
-        mods, vk = parse_hotkey(spec)
+        mods, vk = parse_hotkey(spec, require_modifier=not allow_no_modifier)
         stop_event = threading.Event()
         self._stop = stop_event
         self._ready.clear()
